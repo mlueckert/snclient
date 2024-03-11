@@ -1,6 +1,6 @@
 # SNClient+
 
-[![CICD Pipeline](https://github.com/Consol-Monitoring/snclient/actions/workflows/cicd.yml/badge.svg?branch=main)](https://github.com/Consol-Monitoring/snclient/actions/workflows/cicd.yml)
+[![CICD Pipeline](https://github.com/Consol-Monitoring/snclient/actions/workflows/builds.yml/badge.svg?branch=main)](https://github.com/Consol-Monitoring/snclient/actions/workflows/builds.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Consol-Monitoring/snclient)](https://goreportcard.com/report/github.com/Consol-Monitoring/snclient)
 [![Latest Release](https://img.shields.io/github/v/release/Consol-Monitoring/snclient?sort=semver)](https://github.com/Consol-Monitoring/snclient/releases)
 [![License](https://img.shields.io/github/license/Consol-Monitoring/snclient)](https://github.com/Consol-Monitoring/snclient/blob/main/LICENSE)
@@ -16,7 +16,7 @@ SNClient+ (Secure Naemon Client) is a general purpose monitoring agent designed 
 * Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/snclient)
 * File a Bug in [GitHub Issues](https://github.com/Consol-Monitoring/snclient/issues).
 * Chat with developers on [IRC Libera #snclient](irc://irc.libera.chat/snclient) ([Webchat](https://web.libera.chat/?nick=Guest?#snclient)).
-* Professional Support from [ConSol*](https://www.consol.de/product-solutions/open-source-monitoring/)
+* Professional Support from [ConSol*](https://www.consol.com/product-solutions/open-source-monitoring/)
 
 ## Documentation
 

@@ -1,9 +1,14 @@
 This file documents the revision history for the SNClient+ agent.
 
 next:
+         - add support for perf-syntax
          - check_wmi: add performance data
          - check_wmi: add support for empty-syntax
          - update check_nsc_web to v0.6.3
+         - check_service: fix json error
+         - update windows build framework to wix 3.14
+         - improve wmi stability
+         - add regexp replacement macro post processor
 
 0.19     Wed Feb 28 00:09:39 CET 2024
          - write startup errors to default logfile

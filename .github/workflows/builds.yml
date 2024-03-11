@@ -1,5 +1,5 @@
-name: Test, Build, Package, Release
-
+name: Builds
+#
 #
 # this workflow:
 #    - runs tests
@@ -252,6 +252,7 @@ jobs:
       - run: |
           Write-Host "Building ${{ env.BIN }}.msi"
           Copy-Item .\windist\windows_exporter-${{ matrix.go-arch }}.exe .\windist\windows_exporter.exe
+          # Set-PSDebug -Trace 2
           & .\packaging\windows\build_msi.ps1 `
             -out "${{ env.BIN }}.msi" `
             -arch "${{ matrix.go-arch }}" `
@@ -485,7 +486,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: make release_notes.txt
       - id: create-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: "v${{needs.get-version.outputs.version}}"
           tag_name: "v${{needs.get-version.outputs.version}}"
