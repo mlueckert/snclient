@@ -2,6 +2,8 @@ module github.com/consol-monitoring/snclient
 
 go 1.22.0
 
+toolchain go1.22.2
+
 replace pkg/dump => ./pkg/dump
 
 replace pkg/eventlog => ./pkg/eventlog
@@ -19,6 +21,8 @@ replace pkg/snclient/commands => ./pkg/snclient/commands
 replace pkg/utils => ./pkg/utils
 
 replace pkg/wmi => ./pkg/wmi
+
+replace pkg/perflib => ./pkg/perflib
 
 replace pkg/check_dns => ./pkg/check_dns
 
@@ -97,4 +101,5 @@ require (
 	pkg/nrpe v0.0.0-00010101000000-000000000000 // indirect
 	pkg/snclient v0.0.0-00010101000000-000000000000 // indirect
 	pkg/wmi v0.0.0-00010101000000-000000000000 // indirect
+	pkg/perflib v0.0.0-00010101000000-000000000000 // indirect
 )

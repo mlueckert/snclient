@@ -20,6 +20,8 @@ replace pkg/utils => ../../pkg/utils
 
 replace pkg/wmi => ../../pkg/wmi
 
+replace pkg/perflib => ../../pkg/perflib
+
 replace pkg/check_dns => ../../pkg/check_dns
 
 replace pkg/check_tcp => ../../pkg/check_tcp
@@ -51,6 +53,7 @@ require (
 	pkg/eventlog v0.0.0-00010101000000-000000000000
 	pkg/humanize v0.0.0-00010101000000-000000000000
 	pkg/nrpe v0.0.0-00010101000000-000000000000
+	pkg/perflib v0.0.0-00010101000000-000000000000
 	pkg/utils v0.0.0-00010101000000-000000000000
 	pkg/wmi v0.0.0-00010101000000-000000000000
 )
