@@ -63,7 +63,7 @@ func (l *CheckPDH) ParseQuery(query string) (PDHQuery, error) {
 		if len(part) != 0 {
 			if !tableNameFound {
 				indexMatch := re.FindStringSubmatch(part)
-				if len(indexMatch[1]) != 0 {
+				if len(indexMatch) != 0 {
 					result.instanceIndex = indexMatch[1]
 					result.tableName = strings.Split(part, "(")[0]
 				} else {
@@ -94,8 +94,6 @@ func (l *CheckPDH) Check(_ context.Context, snc *Agent, check *CheckData, _ []Ar
 	if l.query == "" {
 		return nil, fmt.Errorf("perfcounter query required")
 	}
-	state := int64(0)
-	output := "Dummy Check"
 	qParts, err := l.ParseQuery(l.query)
 	if err != nil {
 		return nil, err
@@ -106,15 +104,35 @@ func (l *CheckPDH) Check(_ context.Context, snc *Agent, check *CheckData, _ []Ar
 		return nil, fmt.Errorf("perfcounter table with name %s not found", tableName)
 	}
 
-	objects, err := perflib.QueryPerformanceData(strconv.Itoa(int(index)))
+	perfObject, err := perflib.QueryPerformanceData(strconv.Itoa(int(index)))
 	if err != nil {
 		return nil, fmt.Errorf("perfcounter query failed: %s", err.Error())
 	}
-	if objects != nil {
-		output = "ok"
+	for _, instance := range perfObject[0].Instances {
+		values := []string{}
+		entry := map[string]string{}
+		for _, counter := range instance.Counters {
+			if counter.Def.Name == qParts.counterName {
+				l.AddPerfData(check, counter, perfObject[0].Name, instance.Name)
+
+				values = append(values, fmt.Sprintf("%v", counter.Value))
+				entryName := fmt.Sprintf("\\%v(%v)\\%v", perfObject[0].Name, instance.Name, counter.Def.Name)
+				entry[entryName] = fmt.Sprintf("%v", counter.Value)
+			}
+		}
+		entry["line"] = strings.Join(values, ", ")
+		check.listData = append(check.listData, entry)
 	}
-	return &CheckResult{
-		State:  state,
-		Output: output,
-	}, nil
+
+	return check.Finalize()
+}
+
+func (l *CheckPDH) AddPerfData(check *CheckData, counter *perflib.PerfCounter, perfName string, instanceName string) {
+	check.result.Metrics = append(check.result.Metrics, &CheckMetric{
+		ThresholdName: fmt.Sprintf("\\%s(%s)\\%s", perfName, instanceName, counter.Def.Name),
+		Name:          fmt.Sprintf("\\%s(%s)\\%s", perfName, instanceName, counter.Def.Name),
+		Value:         counter.Value,
+		Warning:       check.warnThreshold,
+		Critical:      check.critThreshold,
+	})
 }
