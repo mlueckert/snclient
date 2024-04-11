@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+// Conversion factors
+const (
+	TicksToSecondScaleFactor = 1 / 1e7
+	WindowsEpoch             = 116444736000000000
+)
+
 func init() {
 	AvailableChecks["check_pdh"] = CheckEntry{"check_pdh", NewCheckPDH}
 }
@@ -28,7 +34,7 @@ func (l *CheckPDH) Build() *CheckData {
 		usage:       "check_pdh query",
 		description: "This check queries windows performance counters (pdh).",
 		args: map[string]CheckArgument{
-			"query": {value: &l.query, description: "The WMI query to execute"},
+			"query": {value: &l.query, description: "The performance counter to query"},
 		},
 		implemented: Windows,
 		result: &CheckResult{
@@ -37,13 +43,14 @@ func (l *CheckPDH) Build() *CheckData {
 		emptyState:    ExitCodeUnknown,
 		emptySyntax:   "query did not return any result.",
 		hasArgsFilter: true, // otherwise empty-syntax won't be applied
-		topSyntax:     "${list}",
+		okSyntax:      "%(status) - %(list)",
+		topSyntax:     "%(status) - ${problem_list}",
 		detailSyntax:  "%(line)",
 		exampleDefault: `
-    check_pdh '\Processor(*)\% Processor Time'
+    check_pdh '\Memory\Available MBytes'
     some example output
 	`,
-		exampleArgs: `'\Processor(*)\% Processor Time'`,
+		exampleArgs: `'\Memory\Available MBytes'`,
 	}
 }
 
@@ -113,26 +120,44 @@ func (l *CheckPDH) Check(_ context.Context, snc *Agent, check *CheckData, _ []Ar
 		entry := map[string]string{}
 		for _, counter := range instance.Counters {
 			if counter.Def.Name == qParts.counterName {
+				tValue := l.CookCounterValue(check, counter, *perfObject[0])
+				fmt.Sprintf("%v", tValue)
 				l.AddPerfData(check, counter, perfObject[0].Name, instance.Name)
 
 				values = append(values, fmt.Sprintf("%v", counter.Value))
 				entryName := fmt.Sprintf("\\%v(%v)\\%v", perfObject[0].Name, instance.Name, counter.Def.Name)
 				entry[entryName] = fmt.Sprintf("%v", counter.Value)
+				entry["line"] = fmt.Sprintf("%v %v=%v", entry["line"], entryName, counter.Value)
+				entry[reASCIIonly.ReplaceAllString(entryName, "")] = fmt.Sprintf("%v", counter.Value)
 			}
 		}
-		entry["line"] = strings.Join(values, ", ")
+		entry["counter_value"] = strings.Join(values, ", ")
 		check.listData = append(check.listData, entry)
 	}
 
 	return check.Finalize()
 }
 
+func (l *CheckPDH) CookCounterValue(check *CheckData, counter *perflib.PerfCounter, obj perflib.PerfObject) (cookedValue float64) {
+	switch counter.Def.CounterType {
+	case perflib.PERF_ELAPSED_TIME:
+		return (float64(counter.Value-WindowsEpoch) / float64(obj.Frequency))
+	case perflib.PERF_100NSEC_TIMER, perflib.PERF_PRECISION_100NS_TIMER:
+		return (float64(counter.Value) * TicksToSecondScaleFactor)
+	default:
+		return (float64(counter.Value))
+	}
+}
+
 func (l *CheckPDH) AddPerfData(check *CheckData, counter *perflib.PerfCounter, perfName string, instanceName string) {
+	formattedName := fmt.Sprintf("\\%s\\%s", perfName, counter.Def.Name)
+	if instanceName != "" {
+		formattedName = fmt.Sprintf("\\%s(%s)\\%s", perfName, instanceName, counter.Def.Name)
+	}
 	check.result.Metrics = append(check.result.Metrics, &CheckMetric{
-		ThresholdName: fmt.Sprintf("\\%s(%s)\\%s", perfName, instanceName, counter.Def.Name),
-		Name:          fmt.Sprintf("\\%s(%s)\\%s", perfName, instanceName, counter.Def.Name),
-		Value:         counter.Value,
-		Warning:       check.warnThreshold,
-		Critical:      check.critThreshold,
+		Name:     formattedName,
+		Value:    counter.Value,
+		Warning:  check.warnThreshold,
+		Critical: check.critThreshold,
 	})
 }
